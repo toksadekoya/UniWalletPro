@@ -657,3 +657,4 @@ function importData() {
 document.addEventListener('DOMContentLoaded', () => {
     window.budgetTracker = new AdvancedBudgetTracker();
 });// Core budget management system
+// Expense CRUD operations

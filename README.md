@@ -1,4 +1,4 @@
-# UniWallet - Advanced Budget Management System
+# UniWallet - Budgeting Tool for Students
 
 ## 🚀 Features
 - Real-time budget tracking

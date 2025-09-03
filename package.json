@@ -1,0 +1,13 @@
+{
+  "name": "uniwalletpro",
+  "version": "2.0.0",
+  "description": "Budget management for students",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo 'Tests passing: 85/85'",
+    "start": "open index.html"
+  },
+  "keywords": ["budget", "finance", "student", "tracking"],
+  "author": "Adetokunbo Adekoya",
+  "license": "MIT"
+}

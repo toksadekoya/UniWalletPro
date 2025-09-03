@@ -656,4 +656,4 @@ function importData() {
 // Initialize the budget tracker when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.budgetTracker = new AdvancedBudgetTracker();
-});
+});// Core budget management system

@@ -659,3 +659,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });// Core budget management system
 // Expense CRUD operations
 // Advanced filtering system
+// Chart.js integration

@@ -1,4 +1,4 @@
-# UniWallet - Budgeting Tool for Students
+# UniWalletPro - Budgeting Tool for Students
 
 ## 🚀 Features
 - Real-time budget tracking

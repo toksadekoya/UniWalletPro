@@ -660,3 +660,4 @@ document.addEventListener('DOMContentLoaded', () => {
 // Expense CRUD operations
 // Advanced filtering system
 // Chart.js integration
+// LocalStorage data persistence

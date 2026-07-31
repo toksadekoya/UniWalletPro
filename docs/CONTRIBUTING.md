@@ -12,7 +12,7 @@
 ## Standards
 
 - Use JavaScript modules and keep domain logic separate from DOM rendering.
-- Use semantic HTML and visible form labels.
+- Use semantic HTML and programmatically associated form labels; keep labels visible where the design provides them.
 - Render user-controlled values with safe DOM APIs such as `textContent`.
 - Validate data at import and state boundaries.
 - Add unit tests for logic and Playwright coverage for user-facing flows.

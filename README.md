@@ -81,7 +81,7 @@ CI runs the same tests and build for every pull request and every push to `main`
 
 ## Accessibility
 
-The application includes visible labels, a skip link, semantic landmarks, keyboard-operable chart tabs, live status messages, accessible chart summaries, high-contrast category labels, visible focus indicators, and reduced-motion support. Playwright runs an axe-core scan against a populated dashboard.
+The application includes associated form labels, visible filter labels, a skip link, semantic landmarks, keyboard-operable chart tabs, live status messages, accessible chart summaries, high-contrast category labels, visible focus indicators, and reduced-motion support. Playwright runs an axe-core scan against a populated dashboard.
 
 Automated checks cannot replace manual assistive-technology testing. Screen-reader testing remains part of the roadmap.
 

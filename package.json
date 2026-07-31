@@ -35,6 +35,8 @@
   },
   "homepage": "https://toksadekoya.github.io/UniWalletPro/",
   "dependencies": {
+    "@fontsource/montserrat": "^5.3.0",
+    "boxicons": "^2.1.4",
     "chart.js": "^4.5.0"
   },
   "devDependencies": {

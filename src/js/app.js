@@ -179,8 +179,8 @@ export class UniWalletApp {
     this.elements.expenseTitle.value = expense.title;
     this.elements.expenseAmount.value = expense.amount.toFixed(2);
     this.elements.expenseCategory.value = expense.category;
-    this.elements.expenseFormTitle.textContent = 'Edit expense';
-    this.elements.expenseSubmitButton.textContent = 'Save changes';
+    this.setIconLabel(this.elements.expenseFormTitle, 'bx-edit', 'Edit Expense');
+    this.setIconLabel(this.elements.expenseSubmitButton, 'bx-save', 'Save Changes');
     this.elements.cancelEditButton.classList.remove('hidden');
     this.elements.expenseTitle.focus();
     this.elements.expenseForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -191,8 +191,8 @@ export class UniWalletApp {
     this.editingId = null;
     this.elements.expenseForm.reset();
     this.elements.expenseCategory.value = 'food';
-    this.elements.expenseFormTitle.textContent = 'Add an expense';
-    this.elements.expenseSubmitButton.textContent = 'Add expense';
+    this.setIconLabel(this.elements.expenseFormTitle, 'bx-receipt', 'Add Expense');
+    this.setIconLabel(this.elements.expenseSubmitButton, 'bx-plus', 'Add Expense');
     this.elements.cancelEditButton.classList.add('hidden');
     if (focus && wasEditing) this.elements.expenseTitle.focus();
   }
@@ -352,6 +352,16 @@ export class UniWalletApp {
 
   renderInsights() {
     this.elements.insightsList.replaceChildren();
+    if (this.tracker.expenses.length === 0) {
+      this.elements.insightsList.append(
+        createElement('li', {
+          className: 'insight-empty',
+          text: 'Add some expenses to see insights!',
+        }),
+      );
+      return;
+    }
+
     for (const insight of this.tracker.insights()) {
       const item = createElement('li');
       item.append(
@@ -419,7 +429,15 @@ export class UniWalletApp {
   }
 
   setDataStatus(message) {
-    this.elements.dataStatus.textContent = message;
+    this.setIconLabel(this.elements.dataStatus, 'bx-data', message);
+  }
+
+  setIconLabel(element, iconName, text) {
+    const icon = createElement('i', {
+      className: `bx ${iconName}`,
+      attributes: { 'aria-hidden': 'true' },
+    });
+    element.replaceChildren(icon, document.createTextNode(text));
   }
 
   setAlert(message, type) {

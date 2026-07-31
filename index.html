@@ -1,197 +1,277 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!doctype html>
+<html lang="en-GB">
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <title>UniWallet - Advanced Budget Tracker</title>
-    <link rel="stylesheet" href="src/css/style.css">
-</head>
-<body>
+    <meta
+      name="description"
+      content="UniWallet Pro is a private, browser-based budgeting dashboard for students."
+    >
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self' data:; img-src 'self' data:; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; object-src 'none'; base-uri 'self'; form-action 'self'"
+    >
+    <title>UniWallet Pro — Advanced Budget Tracker</title>
+    <link rel="stylesheet" href="/src/css/style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to budget dashboard</a>
+
     <div class="container">
-        <div class="header">
-            <div class="header-content">
-                <h1>UniWallet Pro</h1>
-                <p>Budgeting Tool for Students with Smart Insights!
-                </p>
-            </div>
-            <div class="header-actions">
-                <div class="data-status" id="dataStatus">
-                    <i class="bx bx-data"></i> Data saved locally
-                </div>
-                <button class="btn btn-small" onclick="exportData()">
-                    <i class="bx bx-export"></i> Export
-                </button>
-                <button class="btn btn-small" onclick="importData()">
-                    <i class="bx bx-import"></i> Import
-                </button>
-            </div>
+      <header class="header">
+        <div class="header-content">
+          <h1>UniWallet Pro</h1>
+          <p>Budgeting Tool for Students with Smart Insights!</p>
         </div>
 
-        <div class="alert" id="alertMessage"></div>
-
-        <div class="main-content">
-            <div class="left-panel">
-                <div class="input-section">
-                    <div class="input-group">
-                        <h3><i class="bx bx-money"></i> Set Your Budget</h3>
-                        <input type="number" id="budgetInput" class="form-control" placeholder="Enter your total budget" min="0" step="0.01">
-                        <select id="budgetPeriod" class="form-select">
-                            <option value="monthly">Monthly Budget</option>
-                            <option value="weekly">Weekly Budget</option>
-                            <option value="daily">Daily Budget</option>
-                        </select>
-                        <button type="button" class="btn" id="setBudgetBtn">
-                            <i class="bx bx-check"></i> Set Budget
-                        </button>
-                    </div>
-
-                    <div class="input-group">
-                        <h3><i class="bx bx-receipt"></i> Add Expense</h3>
-                        <input type="text" id="expenseTitle" class="form-control" placeholder="Expense description">
-                        <input type="number" id="expenseAmount" class="form-control" placeholder="Amount" min="0" step="0.01">
-                        <select id="expenseCategory" class="form-select">
-                            <option value="food">🍔 Food & Dining</option>
-                            <option value="transport">🚗 Transport</option>
-                            <option value="entertainment">🎬 Entertainment</option>
-                            <option value="shopping">🛍️ Shopping</option>
-                            <option value="bills">💡 Bills & Utilities</option>
-                            <option value="healthcare">🏥 Healthcare</option>
-                            <option value="other">📦 Other</option>
-                        </select>
-                        <button type="button" class="btn" id="addExpenseBtn">
-                            <i class="bx bx-plus"></i> <span>Add Expense</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon budget-icon">
-                            <i class="bx bx-money"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="budgetCard">£0.00</h3>
-                            <p>Total Budget</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon expense-icon">
-                            <i class="bx bx-credit-card"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="expensesCard">£0.00</h3>
-                            <p>Total Expenses</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon balance-icon">
-                            <i class="bx bx-wallet"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="balanceCard">£0.00</h3>
-                            <p>Remaining</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon categories-icon">
-                            <i class="bx bx-category"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="categoriesCard">0</h3>
-                            <p>Categories Used</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="filters-section">
-                    <h3>Filter & Search Expenses</h3>
-                    <div class="filters-grid">
-                        <div class="filter-group">
-                            <label>Search</label>
-                            <input type="text" id="searchFilter" class="form-control" placeholder="Search expenses...">
-                        </div>
-                        <div class="filter-group">
-                            <label>Category</label>
-                            <select id="categoryFilter" class="form-select">
-                                <option value="">All Categories</option>
-                                <option value="food">Food & Dining</option>
-                                <option value="transport">Transport</option>
-                                <option value="entertainment">Entertainment</option>
-                                <option value="shopping">Shopping</option>
-                                <option value="bills">Bills & Utilities</option>
-                                <option value="healthcare">Healthcare</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Date Range</label>
-                            <select id="dateFilter" class="form-select">
-                                <option value="">All Time</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Amount Range</label>
-                            <select id="amountFilter" class="form-select">
-                                <option value="">All Amounts</option>
-                                <option value="0-10">£0 - £10</option>
-                                <option value="10-50">£10 - £50</option>
-                                <option value="50-100">£50 - £100</option>
-                                <option value="100+">£100+</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="expenses-section">
-                    <div class="expenses-header">
-                        <h3>Expense History</h3>
-                        <button class="btn btn-small" onclick="clearAllExpenses()">
-                            <i class="bx bx-trash"></i> Clear All
-                        </button>
-                    </div>
-                    <div class="expense-list" id="expenseList">
-                        <div class="empty-state">
-                            <i class="bx bx-receipt"></i>
-                            <p>No expenses found. Start by adding your first expense!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="right-panel">
-                <div class="charts-section">
-                    <h3><i class="bx bx-bar-chart-alt-2"></i> Spending Analytics</h3>
-                    
-                    <div class="chart-tabs">
-                        <div class="chart-tab active" onclick="showChart('category')">By Category</div>
-                        <div class="chart-tab" onclick="showChart('daily')">Daily Trend</div>
-                    </div>
-
-                    <div class="chart-container">
-                        <canvas id="expenseChart"></canvas>
-                    </div>
-
-                    <div class="insights" id="insightsPanel">
-                        <h4 style="margin-bottom: 1rem;">💡 Smart Insights</h4>
-                        <div id="insightsList">
-                            <p style="color: var(--text-secondary); font-style: italic;">Add some expenses to see insights!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="header-actions" aria-label="Data controls">
+          <p class="data-status" id="dataStatus" role="status" aria-live="polite">
+            <i class="bx bx-data" aria-hidden="true"></i>
+            Data saved locally
+          </p>
+          <button class="button button-small header-button" id="exportButton" type="button">
+            <i class="bx bx-export" aria-hidden="true"></i>
+            Export
+          </button>
+          <button class="button button-small header-button" id="importButton" type="button">
+            <i class="bx bx-import" aria-hidden="true"></i>
+            Import
+          </button>
+          <label class="sr-only" for="importFile">Choose a UniWallet backup file</label>
+          <input class="sr-only" type="file" id="importFile" accept="application/json,.json">
         </div>
+      </header>
+
+      <div class="alert" id="alertMessage" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <main class="main-content" id="main-content">
+        <div class="left-panel">
+          <section class="input-section" aria-label="Budget and expense entry">
+            <form class="input-group" id="budgetForm">
+              <h2><i class="bx bx-money" aria-hidden="true"></i> Set Your Budget</h2>
+
+              <label class="sr-only" for="budgetInput">Budget amount</label>
+              <input
+                class="form-control"
+                id="budgetInput"
+                name="budget"
+                type="number"
+                inputmode="decimal"
+                min="0.01"
+                max="999999"
+                step="0.01"
+                placeholder="Enter your total budget"
+                required
+              >
+
+              <label class="sr-only" for="budgetPeriod">Budget period</label>
+              <select class="form-select" id="budgetPeriod" name="budgetPeriod">
+                <option value="monthly">Monthly Budget</option>
+                <option value="weekly">Weekly Budget</option>
+                <option value="daily">Daily Budget</option>
+              </select>
+
+              <button class="button" type="submit">
+                <i class="bx bx-check" aria-hidden="true"></i>
+                Set Budget
+              </button>
+            </form>
+
+            <form class="input-group" id="expenseForm">
+              <h2 id="expenseFormTitle">
+                <i class="bx bx-receipt" aria-hidden="true"></i>
+                Add Expense
+              </h2>
+
+              <label class="sr-only" for="expenseTitle">Description</label>
+              <input
+                class="form-control"
+                id="expenseTitle"
+                name="expenseTitle"
+                type="text"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Expense description"
+                required
+              >
+
+              <label class="sr-only" for="expenseAmount">Amount</label>
+              <input
+                class="form-control"
+                id="expenseAmount"
+                name="expenseAmount"
+                type="number"
+                inputmode="decimal"
+                min="0.01"
+                max="100000"
+                step="0.01"
+                placeholder="Amount"
+                required
+              >
+
+              <label class="sr-only" for="expenseCategory">Category</label>
+              <select class="form-select" id="expenseCategory" name="expenseCategory">
+                <option value="food">🍔 Food &amp; Dining</option>
+                <option value="transport">🚗 Transport</option>
+                <option value="entertainment">🎬 Entertainment</option>
+                <option value="shopping">🛍️ Shopping</option>
+                <option value="bills">💡 Bills &amp; Utilities</option>
+                <option value="healthcare">🏥 Healthcare</option>
+                <option value="other">📦 Other</option>
+              </select>
+
+              <div class="form-actions">
+                <button class="button" id="expenseSubmitButton" type="submit">
+                  <i class="bx bx-plus" aria-hidden="true"></i>
+                  Add Expense
+                </button>
+                <button class="button button-secondary hidden" id="cancelEditButton" type="button">
+                  Cancel Edit
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section aria-labelledby="summaryHeading">
+            <h2 class="sr-only" id="summaryHeading">Budget summary</h2>
+            <div class="stats-grid">
+              <article class="stat-card">
+                <div class="stat-icon budget-icon" aria-hidden="true"><i class="bx bx-money"></i></div>
+                <div class="stat-info">
+                  <p class="stat-value" id="budgetCard">£0.00</p>
+                  <p>Total Budget</p>
+                </div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-icon expense-icon" aria-hidden="true"><i class="bx bx-credit-card"></i></div>
+                <div class="stat-info">
+                  <p class="stat-value" id="expensesCard">£0.00</p>
+                  <p>Total Expenses</p>
+                </div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-icon balance-icon" aria-hidden="true"><i class="bx bx-wallet"></i></div>
+                <div class="stat-info">
+                  <p class="stat-value" id="balanceCard">£0.00</p>
+                  <p>Remaining</p>
+                </div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-icon categories-icon" aria-hidden="true"><i class="bx bx-category"></i></div>
+                <div class="stat-info">
+                  <p class="stat-value" id="categoriesCard">0</p>
+                  <p>Categories Used</p>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="filters-section" aria-labelledby="filterHeading">
+            <h2 id="filterHeading">Filter &amp; Search Expenses</h2>
+            <div class="filters-grid">
+              <div class="filter-group">
+                <label for="searchFilter">Search</label>
+                <input class="form-control" id="searchFilter" type="search" placeholder="Search expenses...">
+              </div>
+              <div class="filter-group">
+                <label for="categoryFilter">Category</label>
+                <select class="form-select" id="categoryFilter">
+                  <option value="">All Categories</option>
+                  <option value="food">Food &amp; Dining</option>
+                  <option value="transport">Transport</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="shopping">Shopping</option>
+                  <option value="bills">Bills &amp; Utilities</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="dateFilter">Date Range</label>
+                <select class="form-select" id="dateFilter">
+                  <option value="">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="amountFilter">Amount Range</label>
+                <select class="form-select" id="amountFilter">
+                  <option value="">All Amounts</option>
+                  <option value="0-10">£0–£10</option>
+                  <option value="10-50">£10–£50</option>
+                  <option value="50-100">£50–£100</option>
+                  <option value="100+">£100+</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="expenses-section" aria-labelledby="historyHeading">
+            <div class="expenses-header">
+              <div>
+                <h2 id="historyHeading">Expense History</h2>
+                <p class="sr-only" id="expenseCount">0 expenses</p>
+              </div>
+              <button class="button button-small" id="clearExpensesButton" type="button" disabled>
+                <i class="bx bx-trash" aria-hidden="true"></i>
+                Clear All
+              </button>
+            </div>
+            <ul class="expense-list" id="expenseList" aria-live="polite"></ul>
+          </section>
+        </div>
+
+        <aside class="right-panel" aria-labelledby="analyticsHeading">
+          <section class="charts-section">
+            <h2 id="analyticsHeading">
+              <i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i>
+              Spending Analytics
+            </h2>
+
+            <div class="chart-tabs" role="tablist" aria-label="Spending chart">
+              <button
+                class="chart-tab active"
+                id="categoryTab"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="chartPanel"
+              >
+                By Category
+              </button>
+              <button
+                class="chart-tab"
+                id="dailyTab"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="chartPanel"
+              >
+                Daily Trend
+              </button>
+            </div>
+
+            <div class="chart-container" id="chartPanel" role="tabpanel" aria-labelledby="categoryTab">
+              <canvas id="expenseChart" role="img" aria-label="No spending data available yet.">
+                Spending chart. A text summary follows.
+              </canvas>
+              <p class="sr-only" id="chartSummary">No spending data available yet.</p>
+            </div>
+
+            <section class="insights" aria-labelledby="insightsHeading">
+              <h3 id="insightsHeading">💡 Smart Insights</h3>
+              <ul id="insightsList"></ul>
+            </section>
+          </section>
+        </aside>
+      </main>
     </div>
 
-    <input type="file" id="importFile" accept=".json,.csv" style="display: none;">
-
-    <script src="src/js/app.js"></script>
-</body>
+    <script type="module" src="/src/js/app.js"></script>
+  </body>
 </html>

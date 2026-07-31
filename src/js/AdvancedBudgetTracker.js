@@ -1,130 +1,238 @@
-// src/js/AdvancedBudgetTracker.js
-import { ValidationService } from "./ValidationService.js";
-import { SecurityService } from "./SecurityService.js";
-import { PersistenceManager } from "./PersistenceManager.js";
-import { FilterService } from "./FilterService.js";
-import { ChartService } from "./ChartService.js";
+import { FilterService } from './FilterService.js';
+import { PersistenceManager } from './PersistenceManager.js';
+import { ValidationService } from './ValidationService.js';
+import { CATEGORIES, STORAGE_KEY } from './constants.js';
 
 export class AdvancedBudgetTracker {
-  constructor(opts = {}) {
-    // state
+  constructor({ persistence, now = () => new Date() } = {}) {
+    this.persistence = persistence ?? new PersistenceManager(STORAGE_KEY);
+    this.now = now;
     this.budget = 0;
-    this.budgetPeriod = "monthly";
+    this.budgetPeriod = 'monthly';
     this.expenses = [];
     this.nextId = 1;
-    this.editingId = null;
-
-    // services
-    this.persist = new PersistenceManager(opts.storageKey || "uniwalletpro_data");
-    this.charts = new ChartService();
-
-    // DOM hooks are optional in tests
-    this.dom = opts.dom || null;
   }
 
-  // ---------- validation & security ----------
-  sanitizeInput(s) { return SecurityService.sanitizeInput(s); }
-
-  // ---------- persistence ----------
-  saveData() {
-    const payload = {
+  snapshot() {
+    return {
+      version: '3.0',
       budget: this.budget,
       budgetPeriod: this.budgetPeriod,
-      expenses: this.expenses,
+      expenses: this.expenses.map((expense) => ({ ...expense })),
       nextId: this.nextId,
-      lastSaved: new Date().toISOString()
+      lastSaved: this.now().toISOString(),
     };
-    const res = this.persist.save(payload);
-    return res.ok;
+  }
+
+  saveData() {
+    return this.persistence.save(this.snapshot());
   }
 
   loadData() {
-    const data = this.persist.load();
-    if (!data) return;
-    this.budget = Number(data.budget) || 0;
-    this.budgetPeriod = data.budgetPeriod || "monthly";
-    this.expenses = Array.isArray(data.expenses) ? data.expenses : [];
-    this.nextId = Number(data.nextId) || 1;
+    const stored = this.persistence.load();
+    if (!stored.ok || stored.value === null) return stored;
+
+    const validation = ValidationService.validateImport(stored.value);
+    if (!validation.valid) {
+      return { ok: false, error: validation.error };
+    }
+
+    this.replaceState(validation.value);
+    return { ok: true, storage: stored.storage, value: this.snapshot() };
   }
 
-  // ---------- budget ----------
-  setBudgetFromValue(val) {
-    const check = ValidationService.validateBudget(val);
-    if (!check.valid) return { ok: false, error: check.error };
-    this.budget = Number(val);
-    this.updateDisplay();
-    this.saveData();
-    return { ok: true };
+  replaceState(state) {
+    this.budget = state.budget;
+    this.budgetPeriod = state.budgetPeriod;
+    this.expenses = state.expenses.map((expense) => ({ ...expense }));
+    this.nextId = state.nextId;
   }
 
-  // ---------- expenses ----------
+  setBudget(amount, period) {
+    const budget = ValidationService.validateBudget(amount);
+    if (!budget.valid) return budget;
+    if (!ValidationService.validateBudgetPeriod(period)) {
+      return { valid: false, error: 'Choose a supported budget period.' };
+    }
+
+    this.budget = budget.value;
+    this.budgetPeriod = period;
+    return { valid: true, value: this.snapshot(), persistence: this.saveData() };
+  }
+
   addExpense(title, amount, category) {
-    // validate
-    if (!ValidationService.validateExpenseTitle(title)) throw new Error("Invalid title");
-    if (!ValidationService.validateExpenseAmount(amount)) throw new Error("Invalid amount");
-    if (!ValidationService.validateCategory(category)) throw new Error("Invalid category");
+    const validation = this.validateExpense(title, amount, category);
+    if (!validation.valid) return validation;
 
     const expense = {
-      id: this.nextId++,
-      title: this.sanitizeInput(title),
+      id: this.nextId,
+      title: title.trim(),
       amount: Number(amount),
       category,
-      date: new Date().toISOString()
+      date: this.now().toISOString(),
     };
+
+    this.nextId += 1;
     this.expenses.push(expense);
-    this.updateDisplay();
-    this.saveData();
-    return expense;
+    return { valid: true, value: { ...expense }, persistence: this.saveData() };
   }
 
-  editExpense(id) { this.editingId = id; }
+  updateExpense(id, title, amount, category) {
+    const validation = this.validateExpense(title, amount, category);
+    if (!validation.valid) return validation;
 
-  updateExpense(title, amount, category) {
-    const idx = this.expenses.findIndex(e => e.id === this.editingId);
-    if (idx === -1) return false;
-    if (!ValidationService.validateExpenseTitle(title)) return false;
-    if (!ValidationService.validateExpenseAmount(amount)) return false;
-    if (!ValidationService.validateCategory(category)) return false;
+    const index = this.expenses.findIndex((expense) => expense.id === id);
+    if (index === -1) return { valid: false, error: 'That expense no longer exists.' };
 
-    this.expenses[idx] = {
-      ...this.expenses[idx],
-      title: this.sanitizeInput(title),
+    this.expenses[index] = {
+      ...this.expenses[index],
+      title: title.trim(),
       amount: Number(amount),
       category,
-      updatedAt: new Date().toISOString()
+      updatedAt: this.now().toISOString(),
     };
-    this.editingId = null;
-    this.updateDisplay();
-    this.saveData();
-    return true;
+
+    return {
+      valid: true,
+      value: { ...this.expenses[index] },
+      persistence: this.saveData(),
+    };
+  }
+
+  validateExpense(title, amount, category) {
+    if (!ValidationService.validateExpenseTitle(title)) {
+      return { valid: false, error: 'Enter a description between 1 and 120 characters.' };
+    }
+    if (!ValidationService.validateExpenseAmount(amount)) {
+      return { valid: false, error: 'Enter an amount between £0.01 and £100,000.' };
+    }
+    if (!ValidationService.validateCategory(category)) {
+      return { valid: false, error: 'Choose a supported expense category.' };
+    }
+    return { valid: true };
   }
 
   deleteExpense(id) {
-    const before = this.expenses.length;
-    this.expenses = this.expenses.filter(e => e.id !== id);
-    const changed = this.expenses.length !== before;
-    if (changed) {
-      if (this.editingId === id) this.editingId = null;
-      this.updateDisplay();
-      this.saveData();
+    const originalLength = this.expenses.length;
+    this.expenses = this.expenses.filter((expense) => expense.id !== id);
+    if (this.expenses.length === originalLength) {
+      return { deleted: false, persistence: null };
     }
-    return changed;
+    return { deleted: true, persistence: this.saveData() };
   }
 
-  // ---------- filtering ----------
-  getFilteredExpenses(filters = {}) {
-    return FilterService.apply(this.expenses, filters);
+  clearExpenses() {
+    this.expenses = [];
+    this.nextId = 1;
+    return this.saveData();
   }
 
-  // ---------- display (pure calc for tests) ----------
+  getExpense(id) {
+    const expense = this.expenses.find((item) => item.id === id);
+    return expense ? { ...expense } : null;
+  }
+
+  getFilteredExpenses(filters) {
+    return FilterService.apply(this.expenses, filters, this.now());
+  }
+
   totals() {
-    const totalExpenses = this.expenses.reduce((s,e) => s + e.amount, 0);
-    const balance = this.budget - totalExpenses;
-    return { totalExpenses, balance, categoriesUsed: new Set(this.expenses.map(e => e.category)).size };
+    const totalExpenses = this.expenses.reduce((total, expense) => total + expense.amount, 0);
+    return {
+      totalExpenses,
+      balance: this.budget - totalExpenses,
+      categoriesUsed: new Set(this.expenses.map((expense) => expense.category)).size,
+    };
   }
 
-  updateDisplay() {
-    // For tests we only compute; UI wiring can use these values
-    return this.totals();
+  categoryTotals() {
+    return this.expenses.reduce((totals, expense) => {
+      totals[expense.category] = (totals[expense.category] ?? 0) + expense.amount;
+      return totals;
+    }, {});
+  }
+
+  dailyTotals(days = 7) {
+    const output = [];
+    const current = this.now();
+
+    for (let offset = days - 1; offset >= 0; offset -= 1) {
+      const date = new Date(current.getFullYear(), current.getMonth(), current.getDate());
+      date.setDate(date.getDate() - offset);
+      const start = date.getTime();
+      const end = start + 24 * 60 * 60 * 1000;
+      const total = this.expenses
+        .filter((expense) => {
+          const timestamp = new Date(expense.date).getTime();
+          return timestamp >= start && timestamp < end;
+        })
+        .reduce((sum, expense) => sum + expense.amount, 0);
+
+      output.push({ date, total });
+    }
+
+    return output;
+  }
+
+  insights() {
+    if (this.expenses.length === 0) {
+      return [{ title: 'Start with one expense', message: 'Add an expense to see useful patterns.' }];
+    }
+
+    const { totalExpenses } = this.totals();
+    const output = [];
+
+    if (this.budget === 0) {
+      output.push({ title: 'Set a budget', message: 'Add a budget to track how much money remains.' });
+    } else {
+      const usage = (totalExpenses / this.budget) * 100;
+      const message = usage > 100
+        ? `Spending is ${(usage - 100).toFixed(1)}% over budget.`
+        : `${usage.toFixed(1)}% of the budget has been used.`;
+      output.push({ title: usage > 90 ? 'Budget alert' : 'Budget status', message });
+    }
+
+    const [topCategory, topAmount] = Object.entries(this.categoryTotals())
+      .sort((a, b) => b[1] - a[1])[0];
+    output.push({
+      title: 'Top spending category',
+      message: `${CATEGORIES[topCategory].name} accounts for ${((topAmount / totalExpenses) * 100).toFixed(1)}% of spending.`,
+    });
+    output.push({
+      title: 'Average expense',
+      message: `The average across ${this.expenses.length} ${this.expenses.length === 1 ? 'expense' : 'expenses'} is £${(totalExpenses / this.expenses.length).toFixed(2)}.`,
+    });
+
+    return output;
+  }
+
+  exportData() {
+    return JSON.stringify(
+      {
+        ...this.snapshot(),
+        exportDate: this.now().toISOString(),
+      },
+      null,
+      2,
+    );
+  }
+
+  validateImport(input) {
+    let payload;
+    try {
+      payload = typeof input === 'string' ? JSON.parse(input) : input;
+    } catch {
+      return { valid: false, error: 'The selected file is not valid JSON.' };
+    }
+
+    return ValidationService.validateImport(payload);
+  }
+
+  importData(input) {
+    const validation = this.validateImport(input);
+    if (!validation.valid) return validation;
+
+    this.replaceState(validation.value);
+    return { valid: true, value: this.snapshot(), persistence: this.saveData() };
   }
 }

@@ -40,7 +40,7 @@
     "chart.js": "^4.5.0"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.2",
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.54.2",
     "@vitest/coverage-v8": "^4.1.10",
     "jsdom": "^29.1.1",
